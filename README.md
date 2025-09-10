@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NDIS Invoice Builder
+
+A professional invoice generator for NDIS (National Disability Insurance Scheme) support work in Australia.
+
+## Features
+
+-   **Professional PDF Generation**: Create clean, professional invoices using React PDF
+-   **NDIS Compliance**: Designed specifically for Australian NDIS support work
+-   **Local Storage**: All data stays in your browser - no servers involved
+-   **Real-time Preview**: See your invoice as you build it
+-   **Profile Management**: Save and reuse your business details
+-   **Australian Formatting**: Proper currency, date, and business formatting
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
+
+```bash
+git clone https://github.com/94toman/ndis-invoice.git
+cd ndis-invoice
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Fill in your business details** in the Seller Profile section
+2. **Add invoice information** including client details and NDIS number
+3. **Add work days** with hours, rates, and travel distance
+4. **Preview your invoice** in real-time
+5. **Download PDF** when ready
 
-## Learn More
+## Technology Stack
 
-To learn more about Next.js, take a look at the following resources:
+-   **Next.js 15** - React framework
+-   **TypeScript** - Type safety
+-   **@react-pdf/renderer** - PDF generation
+-   **date-fns** - Date formatting
+-   **localStorage** - Data persistence
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Privacy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+All data is stored locally in your browser. No information is sent to any servers.
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT License
