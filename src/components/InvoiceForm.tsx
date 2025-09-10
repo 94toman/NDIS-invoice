@@ -1,4 +1,3 @@
-'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { DayEntry, InvoiceMeta, Seller } from '@/lib/types';
 import { emptyProfile, loadProfile, saveProfile, clearProfile, type Profile } from '@/lib/profile';
@@ -6,6 +5,60 @@ import { formatMoney } from '@/lib/format';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const uid = () => Math.random().toString(36).slice(2, 9);
+
+// Custom date input component that displays DD/MM/YYYY format
+function CustomDateInput({
+	value,
+	onChange,
+	placeholder,
+}: {
+	value: string;
+	onChange: (value: string) => void;
+	placeholder?: string;
+}) {
+	const formatDateForDisplay = (isoDate: string) => {
+		if (!isoDate) return '';
+		const [year, month, day] = isoDate.split('-');
+		return `${day}/${month}/${year}`;
+	};
+
+	const parseDisplayDate = (displayDate: string) => {
+		const [day, month, year] = displayDate.split('/');
+		if (day && month && year && day.length === 2 && month.length === 2 && year.length === 4) {
+			return `${year}-${month}-${day}`;
+		}
+		return '';
+	};
+
+	const [displayValue, setDisplayValue] = useState(formatDateForDisplay(value));
+
+	useEffect(() => {
+		setDisplayValue(formatDateForDisplay(value));
+	}, [value]);
+
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const inputValue = e.target.value;
+		setDisplayValue(inputValue);
+
+		// Only call onChange if the input is a valid date format
+		if (inputValue.length === 10 && inputValue.includes('/')) {
+			const isoDate = parseDisplayDate(inputValue);
+			if (isoDate) {
+				onChange(isoDate);
+			}
+		}
+	};
+
+	return (
+		<input
+			type="text"
+			value={displayValue}
+			onChange={handleChange}
+			placeholder={placeholder || 'DD/MM/YYYY'}
+			style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '6px' }}
+		/>
+	);
+}
 
 type Props = {
 	onChange: (meta: InvoiceMeta, seller: Seller, days: DayEntry[]) => void;
@@ -23,7 +76,7 @@ export default function InvoiceForm({ onChange }: Props) {
 		clientNDIS: '',
 	});
 	const [days, setDays] = useState<DayEntry[]>([
-		{ id: uid(), date: todayIso(), hours: 0, hourlyRate: 60, km: 0, kmRate: 1 },
+		{ id: uid(), date: todayIso(), hours: 3, hourlyRate: 60, km: 26, kmRate: 1 },
 	]);
 
 	useEffect(() => {
@@ -46,11 +99,26 @@ export default function InvoiceForm({ onChange }: Props) {
 	}
 
 	function addDay() {
-		setDays((ds) => [...ds, { id: uid(), date: todayIso(), hours: 0, hourlyRate: 60, km: 0, kmRate: 1 }]);
+		setDays((ds) => {
+			const lastDay = ds[ds.length - 1];
+			const nextDate = lastDay ? new Date(lastDay.date) : new Date();
+			if (lastDay) {
+				nextDate.setDate(nextDate.getDate() + 1);
+			}
+			return [
+				...ds,
+				{ id: uid(), date: nextDate.toISOString().slice(0, 10), hours: 3, hourlyRate: 60, km: 26, kmRate: 1 },
+			];
+		});
 	}
 
 	function removeDay(id: string) {
-		setDays((ds) => ds.filter((d) => d.id !== id));
+		setDays((ds) => {
+			if (ds.length <= 1) {
+				return ds; // Don't remove the last day
+			}
+			return ds.filter((d) => d.id !== id);
+		});
 	}
 
 	function valid() {
@@ -196,18 +264,16 @@ export default function InvoiceForm({ onChange }: Props) {
 					</label>
 					<label>
 						Invoice date
-						<input
-							type="date"
+						<CustomDateInput
 							value={meta.invoiceDate}
-							onChange={(e) => setMeta((m) => ({ ...m, invoiceDate: e.target.value }))}
+							onChange={(value) => setMeta((m) => ({ ...m, invoiceDate: value }))}
 						/>
 					</label>
 					<label>
 						Due date
-						<input
-							type="date"
+						<CustomDateInput
 							value={meta.dueDate}
-							onChange={(e) => setMeta((m) => ({ ...m, dueDate: e.target.value }))}
+							onChange={(value) => setMeta((m) => ({ ...m, dueDate: value }))}
 						/>
 					</label>
 					<label>
@@ -240,9 +306,17 @@ export default function InvoiceForm({ onChange }: Props) {
 
 			<fieldset>
 				<legend>Days</legend>
+				<div className="row" style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '12px' }}>
+					<div>Date</div>
+					<div>Hours</div>
+					<div>Rate/hr</div>
+					<div>KM</div>
+					<div>KM Rate</div>
+					<div>Action</div>
+				</div>
 				{days.map((d) => (
 					<div className="row" key={d.id}>
-						<input type="date" value={d.date} onChange={(e) => updateDay(d.id, { date: e.target.value })} />
+						<CustomDateInput value={d.date} onChange={(value) => updateDay(d.id, { date: value })} />
 						<input
 							type="number"
 							step="0.25"
@@ -257,11 +331,11 @@ export default function InvoiceForm({ onChange }: Props) {
 							min="0"
 							value={d.hourlyRate}
 							onChange={(e) => updateDay(d.id, { hourlyRate: +e.target.value })}
-							placeholder="Hourly rate"
+							placeholder="Rate/hr"
 						/>
 						<input
 							type="number"
-							step="0.1"
+							step="1"
 							min="0"
 							value={d.km}
 							onChange={(e) => updateDay(d.id, { km: +e.target.value })}
@@ -269,13 +343,13 @@ export default function InvoiceForm({ onChange }: Props) {
 						/>
 						<input
 							type="number"
-							step="0.01"
+							step="0.1"
 							min="0"
 							value={d.kmRate}
 							onChange={(e) => updateDay(d.id, { kmRate: +e.target.value })}
-							placeholder="KM rate"
+							placeholder="KM Rate"
 						/>
-						<button type="button" onClick={() => removeDay(d.id)}>
+						<button type="button" onClick={() => removeDay(d.id)} disabled={days.length <= 1}>
 							Remove
 						</button>
 					</div>

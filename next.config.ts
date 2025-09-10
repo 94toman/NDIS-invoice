@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
 		config.resolve.alias.encoding = false;
 		return config;
 	},
+	outputFileTracingRoot: process.cwd(),
 };
 
 export default nextConfig;

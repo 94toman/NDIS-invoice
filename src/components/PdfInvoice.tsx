@@ -1,5 +1,6 @@
 'use client';
-import { Document, Page, Text, View, StyleSheet, PDFViewer } from '@react-pdf/renderer';
+import { useState, useEffect } from 'react';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { InvoiceMeta, Seller, DayEntry } from '@/lib/types';
 import { formatMoney, formatHeaderDate, formatDescDate } from '@/lib/format';
 
@@ -25,11 +26,33 @@ type Props = {
 };
 
 export function PdfInvoice({ meta, seller, days }: Props) {
+	// Safety checks
+	if (!days || days.length === 0) {
+		return (
+			<Document>
+				<Page size="A4" style={styles.page}>
+					<Text>No days to display</Text>
+				</Page>
+			</Document>
+		);
+	}
+
 	const lineItems = [];
 	let idx = 1;
 	let sub = 0;
 
 	for (const d of days) {
+		// Safety check for each day
+		if (
+			!d ||
+			typeof d.hours !== 'number' ||
+			typeof d.hourlyRate !== 'number' ||
+			typeof d.km !== 'number' ||
+			typeof d.kmRate !== 'number'
+		) {
+			continue;
+		}
+
 		const serviceAmount = d.hours * d.hourlyRate;
 		const travelAmount = d.km * d.kmRate;
 		sub += serviceAmount + travelAmount;
@@ -161,8 +184,66 @@ export function PdfInvoice({ meta, seller, days }: Props) {
 }
 
 export function PdfPreview(props: Props) {
+	// This component will only render on client side due to Next.js dynamic import
 	return (
-		<PDFViewer style={{ width: '100%', height: '80vh', border: '1px solid #ddd', borderRadius: 6 }}>
+		<div style={{ width: '100%', height: '80vh', border: '1px solid #ddd', borderRadius: 6 }}>
+			<ClientPdfViewer {...props} />
+		</div>
+	);
+}
+
+function ClientPdfViewer(props: Props) {
+	const [PDFViewer, setPDFViewer] = useState<any>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		// Dynamically import PDFViewer only on client side
+		import('@react-pdf/renderer')
+			.then((mod) => {
+				setPDFViewer(() => mod.PDFViewer);
+				setIsLoading(false);
+			})
+			.catch((error) => {
+				console.error('Failed to load PDFViewer:', error);
+				setIsLoading(false);
+			});
+	}, []);
+
+	if (isLoading) {
+		return (
+			<div
+				style={{
+					width: '100%',
+					height: '100%',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+				}}
+			>
+				Loading PDF viewer...
+			</div>
+		);
+	}
+
+	if (!PDFViewer) {
+		return (
+			<div
+				style={{
+					width: '100%',
+					height: '100%',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					color: '#666',
+				}}
+			>
+				Failed to load PDF viewer
+			</div>
+		);
+	}
+
+	return (
+		<PDFViewer style={{ width: '100%', height: '100%' }}>
 			<PdfInvoice {...props} />
 		</PDFViewer>
 	);

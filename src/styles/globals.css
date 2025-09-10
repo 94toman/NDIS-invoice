@@ -72,6 +72,11 @@ button:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
 }
+
+.form {
+	position: relative;
+	z-index: 10;
+}
 @media (max-width: 900px) {
 	main {
 		grid-template-columns: 1fr !important;

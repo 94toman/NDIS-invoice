@@ -59,8 +59,16 @@ export default function Page() {
 	);
 
 	return (
-		<main style={{ display: 'grid', gap: 16, gridTemplateColumns: 'minmax(320px, 520px) 1fr', padding: 16 }}>
-			<section>
+		<main
+			style={{
+				display: 'grid',
+				gap: 24,
+				gridTemplateColumns: 'minmax(400px, 600px) 1fr',
+				padding: 16,
+				minHeight: '100vh',
+			}}
+		>
+			<section style={{ overflow: 'visible', zIndex: 10 }}>
 				<h2>NDIS Invoice Builder</h2>
 				<p className="hint">Data stays in your browser. No servers involved.</p>
 				<InvoiceForm onChange={handleChange} />
@@ -69,7 +77,7 @@ export default function Page() {
 				</button>
 				{!ready && <p className="hint">Fill seller, client and at least one day to enable download.</p>}
 			</section>
-			<section>
+			<section style={{ overflow: 'hidden', position: 'relative' }}>
 				<h3>Preview</h3>
 				<PdfViewer meta={meta} seller={seller} days={days} />
 			</section>
